@@ -4,21 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 )
-
-func getConfigFilePath() (string, error) {
-
-	homeDir, err := os.UserHomeDir()
-
-	if err != nil {
-		return "", err
-	}
-
-	configFile := filepath.Join(homeDir, configFileName)
-
-	return configFile, nil
-}
 
 func ReadConfig() (Config, error) {
 
@@ -28,7 +14,7 @@ func ReadConfig() (Config, error) {
 		return Config{}, fmt.Errorf("getting the file path %w", err)
 	}
 
-	data, err := os.ReadFile(filePath)
+	file, err := os.Open(filePath)
 
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -36,14 +22,17 @@ func ReadConfig() (Config, error) {
 		}
 		return Config{}, fmt.Errorf("reading the config file %w", err)
 	}
+	defer file.Close()
 
-	config := Config{}
+	decoder := json.NewDecoder(file)
 
-	err = json.Unmarshal(data, &config)
+	cfg := Config{}
+
+	err = decoder.Decode(&cfg)
 
 	if err != nil {
 		return Config{}, fmt.Errorf("parsing the config JSON, %w", err)
 	}
 
-	return config, nil
+	return cfg, nil
 }
