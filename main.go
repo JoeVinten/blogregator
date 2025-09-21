@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/JoeVinten/blogregator/internal/config"
 )
@@ -26,9 +27,13 @@ func handlerLogin(s *state, cmd command) error {
 		return errors.New("no username given")
 	}
 
-	s.cfg.SetUser(cmd.arguments[0])
+	err := s.cfg.SetUser(cmd.arguments[0])
 
-	fmt.Printf("username %s, has been set", cmd.arguments[0])
+	if err != nil {
+		return fmt.Errorf("failed to set user: %w", err)
+	}
+
+	fmt.Printf("username %s, has been set\n", cmd.arguments[0])
 
 	return nil
 
@@ -55,11 +60,28 @@ func main() {
 		log.Fatalf("error reading the config: %v", err)
 	}
 
-	err = cfg.SetUser("joe_vinten")
+	s := &state{}
 
-	if err != nil {
-		log.Fatalf("couldn't set current user: %v")
+	s.cfg = &cfg
+
+	cmdsMap := commands{}
+
+	cmdsMap.handlers = make(map[string]func(*state, command) error)
+
+	cmdsMap.register("login", handlerLogin)
+
+	args := os.Args
+
+	if len(args) < 3 {
+		log.Fatalf("not enough arguments passed")
 	}
+
+	cmd := command{}
+
+	cmd.name = args[1]
+	cmd.arguments = args[2:]
+
+	cmdsMap.run(s, cmd)
 
 	cfg, err = config.ReadConfig()
 
@@ -67,5 +89,5 @@ func main() {
 		log.Fatalf("error reading the config: %v", err)
 	}
 
-	fmt.Printf("Update successful: %+v\n", cfg)
+	fmt.Printf("update successful: %+v\n", cfg)
 }
