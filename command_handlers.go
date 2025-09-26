@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/JoeVinten/blogregator/internal/database"
+	"github.com/google/uuid"
 )
 
 func (c *commands) run(s *state, cmd command) error {
@@ -24,14 +30,66 @@ func handlerLogin(s *state, cmd command) error {
 		return errors.New("no username given")
 	}
 
-	err := s.cfg.SetUser(cmd.arguments[0])
+	username := cmd.arguments[0]
+
+	_, err := s.db.GetUser(context.Background(), username)
+
+	if err != nil {
+		// Does not check if there's an actual error
+		fmt.Fprintf(os.Stderr, "Error: user %s, does not exist", username)
+		os.Exit(1)
+	}
+
+	err = s.cfg.SetUser(username)
 
 	if err != nil {
 		return fmt.Errorf("failed to set user: %w", err)
 	}
 
-	fmt.Printf("username %s, has been set\n", cmd.arguments[0])
+	fmt.Printf("username %s, has been set\n", username)
 
 	return nil
 
+}
+
+func handlerRegister(s *state, cmd command) error {
+	if len(cmd.arguments) < 1 {
+		return errors.New("no username given")
+	}
+
+	username := cmd.arguments[0]
+
+	_, err := s.db.GetUser(context.Background(), username)
+
+	if err == nil {
+		fmt.Fprintf(os.Stderr, "Error: User with name '%s' already exists\n", username)
+		os.Exit(1)
+	}
+
+	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		Name:      username,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	err = s.cfg.SetUser(user.Name)
+
+	if err != nil {
+		return fmt.Errorf("failed to set user: %w", err)
+	}
+
+	fmt.Println("User created successfully:")
+	printUser(user)
+	return nil
+
+}
+
+func printUser(user database.User) {
+	fmt.Printf(" * ID:      %v\n", user.ID)
+	fmt.Printf(" * Name:    %v\n", user.Name)
 }
