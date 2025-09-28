@@ -45,9 +45,11 @@ func main() {
 
 	cmdsMap.register("register", handlerRegister)
 
+	cmdsMap.register("reset", handlerReset)
+
 	args := os.Args
 
-	if len(args) < 3 {
+	if len(args) < 2 {
 		log.Fatalf("not enough arguments passed")
 	}
 
