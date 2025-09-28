@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
@@ -18,53 +17,40 @@ type state struct {
 
 func main() {
 	cfg, err := config.ReadConfig()
-
 	if err != nil {
 		log.Fatalf("error reading the config: %v", err)
 	}
 
-	s := &state{}
-
-	s.cfg = &cfg
-
 	db, err := sql.Open("postgres", cfg.DBURL)
-
 	if err != nil {
 		log.Fatalf("error, %v opening connection to %s", err, cfg.DBURL)
 	}
-
+	defer db.Close()
 	dbQueries := database.New(db)
 
-	s.db = dbQueries
+	programState := &state{
+		db:  dbQueries,
+		cfg: &cfg,
+	}
 
-	cmdsMap := commands{}
-
-	cmdsMap.handlers = make(map[string]func(*state, command) error)
+	cmdsMap := commands{
+		registeredCommands: make(map[string]func(*state, command) error),
+	}
 
 	cmdsMap.register("login", handlerLogin)
-
 	cmdsMap.register("register", handlerRegister)
-
 	cmdsMap.register("reset", handlerReset)
+	cmdsMap.register("users", handlerUsers)
 
-	args := os.Args
-
-	if len(args) < 2 {
+	if len(os.Args) < 2 {
 		log.Fatalf("not enough arguments passed")
 	}
 
-	cmd := command{}
-
-	cmd.name = args[1]
-	cmd.arguments = args[2:]
-
-	cmdsMap.run(s, cmd)
-
-	cfg, err = config.ReadConfig()
-
+	cmdName := os.Args[1]
+	cmdArgs := os.Args[2:]
+	err = cmdsMap.run(programState, command{Name: cmdName, Args: cmdArgs})
 	if err != nil {
-		log.Fatalf("error reading the config: %v", err)
+		log.Fatalf("run command failed to run: %s", err)
 	}
 
-	fmt.Printf("update successful: %+v\n", cfg)
 }

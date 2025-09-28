@@ -12,25 +12,25 @@ import (
 )
 
 func (c *commands) run(s *state, cmd command) error {
-	handler, exists := c.handlers[cmd.name]
+	handler, exists := c.registeredCommands[cmd.Name]
 
 	if !exists {
-		return fmt.Errorf("unknown command: %s", cmd.name)
+		return fmt.Errorf("unknown command: %s", cmd.Name)
 	}
 
 	return handler(s, cmd)
 }
 
 func (c *commands) register(name string, f func(*state, command) error) {
-	c.handlers[name] = f
+	c.registeredCommands[name] = f
 }
 
 func handlerLogin(s *state, cmd command) error {
-	if len(cmd.arguments) < 1 {
+	if len(cmd.Args) < 1 {
 		return errors.New("no username given")
 	}
 
-	username := cmd.arguments[0]
+	username := cmd.Args[0]
 
 	_, err := s.db.GetUser(context.Background(), username)
 
@@ -53,11 +53,11 @@ func handlerLogin(s *state, cmd command) error {
 }
 
 func handlerRegister(s *state, cmd command) error {
-	if len(cmd.arguments) < 1 {
+	if len(cmd.Args) < 1 {
 		return errors.New("no username given")
 	}
 
-	username := cmd.arguments[0]
+	username := cmd.Args[0]
 
 	_, err := s.db.GetUser(context.Background(), username)
 
@@ -103,5 +103,24 @@ func handlerReset(s *state, cmd command) error {
 
 	fmt.Println("Database reset successfully!")
 
+	return nil
+}
+
+func handlerUsers(s *state, cmd command) error {
+	users, err := s.db.GetUsers(context.Background())
+
+	if err != nil {
+		return fmt.Errorf("failed to get the users: %w", err)
+	}
+
+	currentUser := s.cfg.CurrentUsername
+
+	for _, user := range users {
+		if user.Name == currentUser {
+			fmt.Printf("*  %s (current)\n", user.Name)
+		} else {
+			fmt.Printf("*  %s\n", user.Name)
+		}
+	}
 	return nil
 }

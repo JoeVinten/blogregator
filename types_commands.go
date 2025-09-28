@@ -1,10 +1,10 @@
 package main
 
 type command struct {
-	name      string
-	arguments []string
+	Name string
+	Args []string
 }
 
 type commands struct {
-	handlers map[string]func(*state, command) error
+	registeredCommands map[string]func(*state, command) error
 }
