@@ -41,6 +41,7 @@ func main() {
 	cmdsMap.register("register", handlerRegister)
 	cmdsMap.register("reset", handlerReset)
 	cmdsMap.register("users", handlerUsers)
+	cmdsMap.register("agg", handlerFetchFeed)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("not enough arguments passed")
