@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/JoeVinten/blogregator/internal/database"
@@ -133,4 +134,44 @@ func handlerFetchFeed(s *state, cmd command) error {
 	fmt.Printf("%+v\n", feed)
 	return nil
 
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("usage: addfeed <name> <url>")
+	}
+	currentUser := s.cfg.CurrentUsername
+
+	user, err := s.db.GetUser(context.Background(), currentUser)
+
+	if err != nil {
+		return err
+	}
+
+	name := strings.TrimSpace(cmd.Args[0])
+	url := strings.TrimSpace(cmd.Args[1])
+
+	if name == "" || url == "" {
+		return errors.New("feed name and URL cannot be empty")
+	}
+
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      name,
+		Url:       url,
+		UserID:    user.ID,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to create the feed: %w", err)
+	}
+
+	fmt.Printf("Feed added successfully!\n")
+	fmt.Printf("Name: %s\n", feed.Name)
+	fmt.Printf("URL: %s\n", feed.Url)
+	fmt.Printf("ID: %s\n", feed.ID)
+
+	return nil
 }

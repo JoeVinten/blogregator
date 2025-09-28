@@ -9,7 +9,7 @@ CREATE TABLE feeds(
 	FOREIGN KEY (user_id)
 		REFERENCES users(id)
 		ON DELETE CASCADE
-)
+);
 
 -- +goose Down
 DROP TABLE feeds;
