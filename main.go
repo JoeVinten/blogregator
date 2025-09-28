@@ -43,6 +43,7 @@ func main() {
 	cmdsMap.register("users", handlerUsers)
 	cmdsMap.register("agg", handlerFetchFeed)
 	cmdsMap.register("addfeed", handlerAddFeed)
+	cmdsMap.register("feeds", handlerListFeeds)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("not enough arguments passed")
