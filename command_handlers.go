@@ -36,7 +36,6 @@ func handlerLogin(s *state, cmd command) error {
 	_, err := s.db.GetUser(context.Background(), username)
 
 	if err != nil {
-		// Does not check if there's an actual error
 		fmt.Fprintf(os.Stderr, "Error: user %s, does not exist", username)
 		os.Exit(1)
 	}
@@ -240,6 +239,31 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 
 	for _, feed := range feeds {
 		fmt.Printf("  * %s\n", feed.FeedName)
+	}
+
+	return nil
+}
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.Args) < 1 {
+		return errors.New("usage: unfollow <url>")
+	}
+
+	// Get the field ID first
+
+	feed, err := s.db.GetFeedsByUrl(context.Background(), cmd.Args[0])
+
+	if err != nil {
+		return err
+	}
+
+	err = s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+
+	if err != nil {
+		return err
 	}
 
 	return nil
