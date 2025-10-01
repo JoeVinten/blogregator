@@ -42,10 +42,10 @@ func main() {
 	cmdsMap.register("reset", handlerReset)
 	cmdsMap.register("users", handlerUsers)
 	cmdsMap.register("agg", handlerFetchFeed)
-	cmdsMap.register("addfeed", handlerAddFeed)
+	cmdsMap.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	cmdsMap.register("feeds", handlerListFeeds)
-	cmdsMap.register("follow", handlerFollow)
-	cmdsMap.register("following", handlerFollowing)
+	cmdsMap.register("follow", middlewareLoggedIn(handlerFollow))
+	cmdsMap.register("following", middlewareLoggedIn(handlerFollowing))
 
 	if len(os.Args) < 2 {
 		log.Fatalf("not enough arguments passed")
