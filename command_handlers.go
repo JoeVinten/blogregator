@@ -125,16 +125,6 @@ func handlerUsers(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFetchFeed(s *state, cmd command) error {
-	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%+v\n", feed)
-	return nil
-
-}
-
 func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("usage: addfeed <name> <url>")

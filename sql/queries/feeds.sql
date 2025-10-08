@@ -17,10 +17,11 @@ SELECT * FROM feeds;
 -- name: GetFeedsByUrl :one
 SELECT * FROM feeds WHERE url = $1;
 
--- name: MarkFeedFetched :exec
+-- name: MarkFeedFetched :one
 UPDATE feeds
 SET updated_at = NOW(), last_fetched_at = NOW()
-WHERE id = $1;
+WHERE id = $1
+RETURNING *;
 
 -- name: GetNextFeedToFetch :one
 SELECT * from feeds

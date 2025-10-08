@@ -41,7 +41,7 @@ func main() {
 	cmdsMap.register("register", handlerRegister)
 	cmdsMap.register("reset", handlerReset)
 	cmdsMap.register("users", handlerUsers)
-	cmdsMap.register("agg", handlerFetchFeed)
+	cmdsMap.register("agg", handlerAgg)
 	cmdsMap.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	cmdsMap.register("feeds", handlerListFeeds)
 	cmdsMap.register("follow", middlewareLoggedIn(handlerFollow))
